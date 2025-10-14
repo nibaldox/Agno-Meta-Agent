@@ -16,7 +16,7 @@ Un sistema inteligente que crea agentes AI personalizados automáticamente media
 
 ```bash
 # Clonar o descargar el proyecto
-cd 04-Meta-Agent
+# (Asegúrate de estar en el directorio raíz del proyecto)
 
 # Instalar dependencias
 pip install -r requirements.txt
@@ -37,7 +37,7 @@ Obtén tu API key en: https://console.anthropic.com/
 ### 3. Ejecutar
 
 ```bash
-python main.py
+python -m src.presentation.cli.main
 ```
 
 ## 📖 Cómo Usar
@@ -107,15 +107,25 @@ Herramientas: duckduckgo
 
 ## 📁 Estructura del Proyecto
 
+El proyecto sigue una arquitectura limpia para separar responsabilidades:
+
 ```
-04-Meta-Agent/
-├── meta_agent.py           # Lógica principal del meta-agente
-├── agent_templates.py      # Sistema de plantillas
-├── main.py                 # Punto de entrada CLI
-├── requirements.txt        # Dependencias
-├── .env.example           # Ejemplo de configuración
-├── README.md              # Este archivo
-└── generated/             # Agentes generados (creado automáticamente)
+src/
+├── domain/                 # Lógica y reglas de negocio principales
+│   └── models/             #   - Modelos de datos (Pydantic)
+│
+├── application/            # Orquestación y casos de uso
+│   └── services/           #   - Lógica del Meta-Agente
+│
+├── infrastructure/         # Implementaciones externas
+│   └── templates/          #   - Plantillas de generación de código
+│
+├── presentation/           # Interfaz de usuario (entrada/salida)
+│   └── cli/                #   - Lógica de la línea de comandos (main.py)
+│
+├── requirements.txt        # Dependencias del proyecto
+├── .env.example            # Archivo de ejemplo para variables de entorno
+└── README.md               # Este archivo
 ```
 
 ## 🔧 Configuración Avanzada
