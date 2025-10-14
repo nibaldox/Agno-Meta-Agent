@@ -1,0 +1,20 @@
+# Meta-Agente Generator - Dependencias
+# Python 3.10+
+
+# Framework principal de agentes AI
+agno
+
+# Modelos de lenguaje
+anthropic
+
+# Validación de datos
+pydantic
+
+# UI para terminal
+rich
+
+# Utilidades
+python-dotenv
+
+# HTTP
+requests

@@ -1,0 +1,530 @@
+# Meta-Agente Generador - Contexto para Cursor AI
+
+> **Proyecto:** Sistema de generación automática de agentes AI usando el framework Agno
+> **Versión:** 1.0
+> **Stack:** Python 3.10+, Agno Framework, Anthropic Claude, Pydantic, Rich
+
+---
+
+## 🎯 OBJETIVO DEL PROYECTO
+
+Este proyecto es un **meta-agente conversacional** que crea otros agentes AI de forma automática. El meta-agente:
+1. Conversa con el usuario para entender sus necesidades
+2. Hace preguntas aclaratorias inteligentes
+3. Genera un plan estructurado del agente a crear
+4. Produce código Python funcional usando el framework Agno
+5. Guarda el agente generado como archivo `.py` ejecutable
+
+**Filosofía de diseño:** Simplicidad, modularidad, y código generado listo para producción.
+
+---
+
+## 🏗️ ARQUITECTURA DEL SISTEMA
+
+### Componentes Principales
+
+```
+meta-agente/
+├── meta_agent.py           # Orquestador principal
+│   ├── MetaAgent           # Clase principal
+│   ├── AgentPlan           # Modelo de datos (Pydantic)
+│   ├── analyzer_agent      # Agente para analizar solicitudes
+│   └── planner_agent       # Agente para crear planes
+│
+├── agent_templates.py      # Sistema de plantillas
+│   ├── AgentTemplate       # Clase generadora de código
+│   ├── generate_basic_agent()
+│   ├── generate_agent_with_memory()
+│   └── generate_agent_team()
+│
+└── main.py                 # Punto de entrada CLI
+```
+
+### Flujo de Ejecución
+
+```mermaid
+Usuario → Solicitud → Analyzer Agent → Preguntas Aclaratorias
+                                              ↓
+                                        Conversación
+                                              ↓
+                                      Planner Agent → AgentPlan
+                                              ↓
+                                      AgentTemplate → Código Python
+                                              ↓
+                                      Archivo .py guardado
+```
+
+---
+
+## 📐 PATRONES DE CÓDIGO Y CONVENCIONES
+
+### 1. Estructura de Modelos (Pydantic)
+
+**Patrón usado:**
+```python
+class AgentPlan(BaseModel):
+    """Modelo de datos validado con Pydantic"""
+    nombre: str = Field(description="...")
+    rol: str = Field(description="...")
+    nivel: int = Field(description="...")
+    # ... más campos
+```
+
+**Reglas:**
+- Siempre usar Pydantic para estructuras de datos
+- Incluir `description` en todos los Fields
+- Usar valores default cuando sea apropiado
+- Validación automática de tipos
+
+### 2. Generación de Código con f-strings
+
+**Patrón usado:**
+```python
+def generate_basic_agent(spec: Dict) -> str:
+    code = f'''"""
+{spec.get('descripcion')}
+"""
+
+from agno.agent import Agent
+# ... más código
+'''
+    return code
+```
+
+**Reglas:**
+- Usar triple-quoted f-strings para código multilínea
+- Mantener indentación consistente
+- Incluir docstrings en código generado
+- Usar `.get()` con defaults para diccionarios
+
+### 3. Manejo de Agentes Agno
+
+**Patrón usado:**
+```python
+agent = Agent(
+    name="Nombre del Agente",
+    role="Rol específico",
+    model=Claude(id="claude-sonnet-4-20250514"),
+    tools=[Tool1(), Tool2()],
+    instructions=["instrucción 1", "instrucción 2"],
+    markdown=True,
+    show_tool_calls=True,
+)
+```
+
+**Reglas:**
+- Siempre especificar `name` y `role`
+- Usar listas para `instructions`
+- Habilitar `markdown=True` para mejor formato
+- `show_tool_calls=True` para debugging
+
+---
+
+## 🔧 FRAMEWORK AGNO - REFERENCIA RÁPIDA
+
+### Niveles de Agentes
+
+1. **Nivel 1:** Agente básico + herramientas
+2. **Nivel 2:** Agente + conocimiento/storage
+3. **Nivel 3:** Agente + memoria + razonamiento
+4. **Nivel 4:** Equipos de agentes colaborando
+5. **Nivel 5:** Workflows con estado
+
+### Herramientas Disponibles
+
+```python
+# Búsqueda Web
+from agno.tools.duckduckgo import DuckDuckGoTools
+tools = [DuckDuckGoTools()]
+
+# Finanzas
+from agno.tools.yfinance import YFinanceTools
+tools = [YFinanceTools(stock_price=True, company_info=True)]
+
+# Razonamiento
+from agno.tools.reasoning import ReasoningTools
+tools = [ReasoningTools(add_instructions=True)]
+
+# Python
+from agno.tools.python import PythonTools
+tools = [PythonTools()]
+
+# Archivos
+from agno.tools.file import FileTools
+tools = [FileTools()]
+```
+
+### Modelos Soportados
+
+```python
+# Claude (Anthropic)
+from agno.models.anthropic import Claude
+model = Claude(id="claude-sonnet-4-20250514")
+
+# GPT (OpenAI)
+from agno.models.openai import OpenAIChat
+model = OpenAIChat(id="gpt-4o")
+
+# Gemini (Google)
+from agno.models.google import Gemini
+model = Gemini(id="gemini-2.0-flash-exp")
+```
+
+### Memoria y Storage
+
+```python
+from agno.storage.agent import SqliteAgentStorage
+from agno.memory.agent import AgentMemory
+
+storage = SqliteAgentStorage(
+    table_name="agent_sessions",
+    db_file="agents_db.sqlite"
+)
+
+memory = AgentMemory(
+    create_user_memories=True,
+    create_session_summary=True,
+)
+
+agent = Agent(..., storage=storage, memory=memory)
+```
+
+### Equipos de Agentes
+
+```python
+from agno.team import Team
+
+team = Team(
+    name="Mi Equipo",
+    mode="coordinate",  # o "sequential"
+    members=[agent1, agent2, agent3],
+    model=Claude(id="..."),
+    instructions=["Colaboren efectivamente"],
+)
+```
+
+---
+
+## 💡 PROMPTS PARA TAREAS COMUNES
+
+### Cuando necesites AÑADIR una nueva herramienta:
+
+```
+Por favor añade soporte para [NOMBRE_HERRAMIENTA] al sistema de templates.
+
+Contexto:
+- La herramienta se importa como: from agno.tools.[nombre] import [Nombre]Tools
+- Se inicializa como: [Nombre]Tools(parámetros)
+- Debe añadirse a _get_tool_import() y _generate_tools_init() en agent_templates.py
+
+Genera el código necesario siguiendo el patrón existente.
+```
+
+### Cuando necesites CREAR un nuevo tipo de plantilla:
+
+```
+Crea una nueva plantilla para generar [TIPO_DE_AGENTE].
+
+Requisitos:
+- Debe seguir el patrón de generate_basic_agent()
+- Usar la misma estructura de imports y configuración
+- Retornar código Python válido como string
+- Incluir docstring y ejemplo de uso
+
+Referencia: agent_templates.py líneas 20-60
+```
+
+### Cuando necesites MODIFICAR el flujo conversacional:
+
+```
+Modifica el método interactive_creation() para [OBJETIVO].
+
+Contexto actual:
+1. Solicitud inicial del usuario
+2. Loop de preguntas aclaratorias (max 5 iteraciones)
+3. Generación del plan
+4. Confirmación del usuario
+5. Generación y guardado del código
+
+Mantén la estructura de Rich Console para el formato.
+```
+
+### Cuando necesites DEBUGGEAR generación de JSON:
+
+```
+El planner_agent a veces genera texto adicional antes/después del JSON.
+
+Solución actual (meta_agent.py línea 120):
+- Busca ```json y extrae el contenido
+- Limpia markdown
+- Parsea con json.loads()
+
+¿Puedes mejorar esta lógica para ser más robusta?
+```
+
+---
+
+## 🎨 ESTILO Y CONVENCIONES
+
+### Nomenclatura
+
+- **Archivos:** snake_case (`agent_templates.py`)
+- **Clases:** PascalCase (`AgentPlan`, `MetaAgent`)
+- **Funciones:** snake_case (`generate_basic_agent`)
+- **Constantes:** UPPER_SNAKE_CASE (si las hay)
+- **Variables:** snake_case (`user_request`, `max_iterations`)
+
+### Docstrings
+
+```python
+def function_name(param: Type) -> ReturnType:
+    """
+    Descripción concisa de una línea.
+    
+    Args:
+        param: Descripción del parámetro
+        
+    Returns:
+        Descripción del retorno
+        
+    Raises:
+        ExceptionType: Cuándo se lanza
+    """
+```
+
+### Type Hints
+
+- **Siempre** usar type hints en funciones públicas
+- Usar `Optional[Type]` para valores que pueden ser None
+- Usar `List[Type]`, `Dict[K, V]` para colecciones
+- Importar desde `typing` cuando sea necesario
+
+### Imports
+
+```python
+# Estándar library primero
+import json
+import os
+from typing import Dict, List
+
+# Third-party después
+from pydantic import BaseModel
+from rich.console import Console
+
+# Local al final
+from agent_templates import AgentTemplate
+```
+
+---
+
+## 🔍 CONTEXTO DE DECISIONES TÉCNICAS
+
+### ¿Por qué Agno y no LangChain?
+
+- **Performance:** Agno es ~10,000x más rápido en instantiation
+- **Memoria:** ~50x menos uso de memoria
+- **Simplicidad:** API más limpia y menos boilerplate
+- **Moderno:** Diseñado para multi-modal y multi-agente
+
+### ¿Por qué Pydantic para AgentPlan?
+
+- Validación automática de tipos
+- Serialización JSON built-in
+- Documentación auto-generada
+- Integración perfecta con FastAPI (futuro)
+
+### ¿Por qué dos agentes (analyzer + planner)?
+
+- **Separación de responsabilidades:** Análisis vs. Planificación
+- **Especialización:** Cada agente es experto en su tarea
+- **Flexibilidad:** Pueden mejorarse independientemente
+- **Claridad:** Más fácil de debuggear y mantener
+
+### ¿Por qué f-strings para templates?
+
+- **Simplicidad:** Más fácil que Jinja2 para este caso
+- **Performance:** Nativo de Python, muy rápido
+- **Legibilidad:** El código generado es claro
+- **Mantenibilidad:** No hay dependencia adicional
+
+---
+
+## 🚀 CASOS DE USO COMUNES
+
+### Añadir soporte para nuevo modelo LLM
+
+1. Añadir import en `_get_model_import()`
+2. Añadir init en `_get_model_init()`
+3. Actualizar documentación en `create_plan()` prompt
+
+### Crear agente con configuración custom
+
+```python
+from meta_agent import MetaAgent, AgentPlan
+
+plan = AgentPlan(
+    nombre="Mi Agente Custom",
+    rol="Hacer X",
+    modelo="claude-sonnet-4",
+    nivel=1,
+    herramientas=["duckduckgo"],
+    instrucciones=["Instrucción específica"],
+    ejemplo_uso="Pregunta ejemplo"
+)
+
+meta = MetaAgent()
+code = meta.generate_code(plan)
+```
+
+### Extender con nueva característica
+
+1. **Planificar:** ¿Qué componente afecta?
+2. **Implementar:** Seguir patrones existentes
+3. **Probar:** Crear agente de prueba
+4. **Documentar:** Actualizar este archivo
+
+---
+
+## 🐛 DEBUGGING TIPS
+
+### Error: "JSON decode error"
+
+**Causa:** El planner_agent generó texto extra  
+**Solución:** Mejorar limpieza en `create_plan()` línea 120
+
+### Error: "Tool import not found"
+
+**Causa:** Herramienta no mapeada en `_get_tool_import()`  
+**Solución:** Añadir entrada en el diccionario `tool_map`
+
+### Agente generado no funciona
+
+**Checklist:**
+- [ ] ¿Imports correctos?
+- [ ] ¿Sintaxis válida?
+- [ ] ¿Herramientas bien inicializadas?
+- [ ] ¿API key configurada?
+
+### Rich Console no muestra colores
+
+**Causa:** Terminal no soporta colores  
+**Solución:** Usar `console = Console(force_terminal=True)`
+
+---
+
+## 📚 RECURSOS Y REFERENCIAS
+
+### Documentación Externa
+
+- **Agno Docs:** https://docs.agno.com
+- **Agno GitHub:** https://github.com/agno-agi/agno
+- **Pydantic:** https://docs.pydantic.dev
+- **Rich:** https://rich.readthedocs.io
+
+### Archivos Clave del Proyecto
+
+- `meta_agent.py` líneas 30-80: Lógica de análisis
+- `meta_agent.py` líneas 82-140: Creación de planes
+- `agent_templates.py` líneas 10-70: Plantilla básica
+- `agent_templates.py` líneas 150-200: Mapeo de herramientas
+
+---
+
+## ✅ CHECKLIST PARA NUEVAS FEATURES
+
+Cuando añadas funcionalidad nueva:
+
+- [ ] Código sigue convenciones del proyecto
+- [ ] Type hints añadidos
+- [ ] Docstrings escritos
+- [ ] Error handling implementado
+- [ ] Probado con agente de ejemplo
+- [ ] Este documento actualizado
+- [ ] README actualizado si es necesario
+
+---
+
+## 🎯 PROMPTS ESPECÍFICOS PARA CURSOR
+
+### Para generar código nuevo:
+
+```
+Genera código siguiendo los patrones en [archivo.py].
+Usa las mismas convenciones de estilo.
+Incluye type hints y docstrings.
+Maneja errores apropiadamente.
+```
+
+### Para refactorizar:
+
+```
+Refactoriza [función] para [objetivo].
+Mantén compatibilidad con código existente.
+No cambies la API pública.
+Sigue patrones del proyecto.
+```
+
+### Para debugging:
+
+```
+Hay un error en [archivo] línea [X].
+El error es: [mensaje]
+Contexto: [descripción]
+¿Cuál es la causa probable y cómo lo arreglo?
+```
+
+---
+
+## 🔮 ROADMAP Y EXTENSIONES FUTURAS
+
+### Prioridad Alta
+- [ ] API REST con FastAPI
+- [ ] Interfaz web con Gradio/Streamlit
+- [ ] Tests unitarios
+- [ ] Validación de código generado
+
+### Prioridad Media
+- [ ] Soporte para más herramientas Agno
+- [ ] Templates para workflows (Nivel 5)
+- [ ] Historial de agentes creados
+- [ ] Export a GitHub/Gist
+
+### Prioridad Baja
+- [ ] UI visual para diseño de agentes
+- [ ] Marketplace de templates
+- [ ] Integración con LangSmith
+- [ ] Multi-idioma
+
+---
+
+## 💬 COMUNICACIÓN CON CURSOR
+
+### Cuando pidas ayuda a Cursor:
+
+1. **Sé específico:** "Modifica X en Y para hacer Z"
+2. **Da contexto:** "Siguiendo el patrón en línea N"
+3. **Especifica restricciones:** "Sin cambiar la API"
+4. **Pide explicación:** "¿Por qué este enfoque?"
+
+### Ejemplo de buen prompt:
+
+```
+Necesito añadir soporte para Gemini 2.0 en agent_templates.py.
+
+Contexto:
+- Actualmente soportamos Claude y GPT-4
+- El patrón está en _get_model_import() y _get_model_init()
+- Import: from agno.models.google import Gemini
+- Init: Gemini(id="gemini-2.0-flash-exp")
+
+Por favor:
+1. Añade el caso para Gemini en ambas funciones
+2. Sigue el mismo patrón que Claude/GPT
+3. Actualiza el docstring si es necesario
+```
+
+---
+
+**Última actualización:** [Fecha]
+**Mantenedor:** [Tu nombre]
+**Contacto:** [Tu email/GitHub]

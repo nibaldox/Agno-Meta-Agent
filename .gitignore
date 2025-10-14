@@ -1,0 +1,219 @@
+# Meta-Agente Generator - Git Ignore
+
+# ============================================
+# Variables de Entorno y Configuración
+# ============================================
+.env
+.env.local
+.env.*.local
+*.key
+
+# ============================================
+# Python
+# ============================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# ============================================
+# Agentes Generados
+# ============================================
+# Agentes creados por el meta-agente
+*_agent.py
+generated/
+output/
+
+# Excepciones: Mantener ejemplos si los hay
+!examples/*_agent.py
+
+# ============================================
+# Bases de Datos y Storage
+# ============================================
+# SQLite databases (memoria de agentes)
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+agents_memory.sqlite
+agents_db.sqlite
+
+# ============================================
+# IDEs y Editores
+# ============================================
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+.idea_modules/
+
+# Cursor (si genera archivos temporales)
+.cursor/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ============================================
+# Sistema Operativo
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+
+# ============================================
+# Logs y Temporales
+# ============================================
+*.log
+logs/
+*.tmp
+*.temp
+temp/
+tmp/
+
+# ============================================
+# Jupyter Notebooks
+# ============================================
+.ipynb_checkpoints/
+*.ipynb
+
+# ============================================
+# Documentación Generada
+# ============================================
+docs/_build/
+site/
+
+# ============================================
+# Otros
+# ============================================
+# Backup files
+*.bak
+*.backup
+*~
+
+# Compressed files
+*.zip
+*.tar.gz
+*.rar
+
+# Cache
+.cache/
+*.cache
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# pytype
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ============================================
+# Archivos Específicos del Proyecto
+# ============================================
+# Si generas reportes o análisis
+reports/
+analytics/
+
+# Sesiones guardadas de agentes
+sessions/
+*.session
+
+# Archivos de prueba temporal
+test_agent_*.py
+temp_*.py
+scratch_*.py
