@@ -73,13 +73,9 @@ venv.bak/
 # ============================================
 # Agentes Generados
 # ============================================
-# Agentes creados por el meta-agente
-*_agent.py
-generated/
+# Directorio donde se almacenan los agentes generados
+# (Se versiona para conservar ejemplos)
 output/
-
-# Excepciones: Mantener ejemplos si los hay
-!examples/*_agent.py
 
 # ============================================
 # Bases de Datos y Storage

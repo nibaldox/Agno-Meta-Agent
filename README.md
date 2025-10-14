@@ -1,6 +1,6 @@
 # 🤖 Meta-Agente Generador de Agentes AI
 
-Un sistema inteligente que crea agentes AI personalizados automáticamente mediante conversación natural.
+Un sistema modular basado en **Agno v2** que conversa contigo, diseña agentes especializados y genera código listo para ejecutar.
 
 ## ✨ Características
 
@@ -12,33 +12,26 @@ Un sistema inteligente que crea agentes AI personalizados automáticamente media
 
 ## 🚀 Inicio Rápido
 
-### 1. Instalación
+1. **Instalar dependencias**
 
-```bash
-# Clonar o descargar el proyecto
-cd 04-Meta-Agent
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-# Instalar dependencias
-pip install -r requirements.txt
-```
+2. **Configurar variables de entorno**
 
-### 2. Configuración
+   Copia `.env.example` a `.env` y define las claves necesarias:
 
-```bash
-# Copiar archivo de ejemplo
-cp .env.example .env
+   ```env
+   DEEPSEEK_API_KEY=tu_api_key
+   SERPER_API_KEY=tu_api_key   # solo si usas la herramienta Serper
+   ```
 
-# Editar .env y añadir tu API key de Anthropic
-# ANTHROPIC_API_KEY=tu_api_key_aqui
-```
+3. **Ejecutar interfaz CLI**
 
-Obtén tu API key en: https://console.anthropic.com/
-
-### 3. Ejecutar
-
-```bash
-python main.py
-```
+   ```bash
+   python -m src.presentation.cli.main
+   ```
 
 ## 📖 Cómo Usar
 
@@ -105,17 +98,31 @@ Herramientas: duckduckgo
 | `python` | Ejecutar código | Cálculos, procesamiento |
 | `file` | Manipular archivos | Leer, escribir archivos |
 
-## 📁 Estructura del Proyecto
+## 📁 Arquitectura Limpia
 
 ```
-04-Meta-Agent/
-├── meta_agent.py           # Lógica principal del meta-agente
-├── agent_templates.py      # Sistema de plantillas
-├── main.py                 # Punto de entrada CLI
-├── requirements.txt        # Dependencias
-├── .env.example           # Ejemplo de configuración
-├── README.md              # Este archivo
-└── generated/             # Agentes generados (creado automáticamente)
+src/
+├── application/
+│   ├── __init__.py
+│   └── services/
+│       └── meta_agent.py        # Orquestador del flujo conversacional (Analyzer + Planner)
+├── infrastructure/
+│   ├── __init__.py
+│   └── templates/
+│       └── agent_templates.py   # Generación de código (básico, memoria, equipos)
+├── domain/
+│   └── __init__.py              # Entidades de dominio (extensible)
+└── presentation/
+    └── cli/
+        └── main.py              # Interface de línea de comandos
+
+generated/
+├── README.md                    # Guía de la carpeta
+└── agents/                      # Ejemplos de agentes generados (versionados)
+
+tools/verify_setup.py            # Script de verificación de entorno
+requirements.txt                 # Dependencias (Agno v2 + requests + dotenv + rich)
+.env.example                     # Variables de entorno de ejemplo
 ```
 
 ## 🔧 Configuración Avanzada
@@ -136,24 +143,18 @@ LOG_LEVEL=INFO
 
 ### Modelos Soportados
 
-- **DeepSeek** (DeepSeek): `deepseek-chat` (default), `deepseek-reasoner`
-- **Claude** (Anthropic): `claude-sonnet-4-20250514`
-- **GPT** (OpenAI): `gpt-4o`, `gpt-4-turbo`
-- **Gemini** (Google): `gemini-2.0-flash-exp`
+- **DeepSeek**: `deepseek-chat` (default Analyzer) y `deepseek-reasoner` (Planner y equipos)
+- **Agno v2** permite conectar otros modelos (Claude, GPT, Gemini) modificando el plan generado
 
 ## 💡 Ejemplos de Uso
 
-### Ejemplo 1: Agente de Noticias
+### Ejemplo 1: Agente Conversacional con Búsqueda Web
 
 ```bash
-python main.py
-
-> Un agente que busque noticias de tecnología y startups
-> Quiero que use búsqueda web
-> No necesita memoria
+python generated/agents/asistente_conversacional_con_búsqueda_web_agent.py
 ```
 
-Genera: `buscador_de_noticias_agent.py`
+Incluye memoria persistente (`SqliteDb`) y herramientas DuckDuckGo + Serper.
 
 ### Ejemplo 2: Asistente Financiero
 
@@ -167,17 +168,13 @@ python main.py
 
 Genera: `analista_de_acciones_agent.py` (con memoria)
 
-### Ejemplo 3: Equipo de Investigación
+### Ejemplo 3: Equipo de Artículos de IA
 
 ```bash
-python main.py
-
-> Un equipo de agentes para investigación académica
-> Un miembro busca información, otro analiza, otro escribe
-> No necesita memoria
+python generated/agents/equipo_de_creación_de_artículos_de_ia_agent.py
 ```
 
-Genera: `equipo_de_investigacion_agent.py` (equipo)
+Tres agentes DeepSeek que colaboran (investigación, redacción y SEO).
 
 ## 🎯 Casos de Uso
 
