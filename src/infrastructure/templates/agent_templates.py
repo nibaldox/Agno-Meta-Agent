@@ -84,6 +84,7 @@ class AgentTemplate:
         """
         tool_map = {
             "duckduckgo": "from agno.tools.duckduckgo import DuckDuckGoTools",
+            "serper": "from agno.tools.serper import SerperTools",
             "yfinance": "from agno.tools.yfinance import YFinanceTools",
             "reasoning": "from agno.tools.reasoning import ReasoningTools",
             "python": "from agno.tools.python import PythonTools",
@@ -112,6 +113,8 @@ class AgentTemplate:
 
         if "duckduckgo" in tool_lower or "web" in tool_lower or "search" in tool_lower:
             return "DuckDuckGoTools()"
+        elif "serper" in tool_lower:
+            return 'SerperTools(api_key=os.getenv("SERPER_API_KEY"))'
         elif (
             "yfinance" in tool_lower or "finance" in tool_lower or "stock" in tool_lower
         ):
@@ -144,6 +147,9 @@ class AgentTemplate:
         has_valid_tools = False
         placeholders: List[str] = []
 
+        needs_serper_fallback = False
+        serper_requested = False
+
         for tool in herramientas:
             import_line = AgentTemplate._get_tool_import(tool)
             tool_init = AgentTemplate._generate_tools_init(tool)
@@ -155,6 +161,17 @@ class AgentTemplate:
 
             imports.add(import_line)
             tools_init.append(tool_init)
+            has_valid_tools = True
+
+            tool_lower = tool.lower()
+            if any(keyword in tool_lower for keyword in ("duckduckgo", "web", "search")):
+                needs_serper_fallback = True
+            if "serper" in tool_lower:
+                serper_requested = True
+
+        if needs_serper_fallback and not serper_requested:
+            imports.add("from agno.tools.serper import SerperTools")
+            tools_init.append('SerperTools(api_key=os.getenv("SERPER_API_KEY"))')
             has_valid_tools = True
 
         imports_str = "\n".join(sorted(imports))

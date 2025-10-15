@@ -29,6 +29,7 @@ Un sistema completo basado en **Agno v2** con **AgentOS** y **Lantui TUI** que c
    ```env
    ANTHROPIC_API_KEY=tu_api_key  # Para Claude
    DEEPSEEK_API_KEY=tu_api_key   # Para DeepSeek (opcional)
+   SERPER_API_KEY=tu_api_key     # Para Serper (fallback de búsqueda)
    ```
 
 3. **Ejecutar AgentOS**
@@ -121,6 +122,7 @@ Herramientas: duckduckgo
 | `reasoning` | Razonamiento complejo | Análisis, decisiones |
 | `python` | Ejecutar código | Cálculos, procesamiento |
 | `file` | Manipular archivos | Leer, escribir archivos |
+| `serper` | Respaldo de búsqueda Google | Complemento cuando DuckDuckGo no responde |
 
 ## 🏗️ Arquitectura del Sistema
 

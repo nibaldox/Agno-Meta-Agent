@@ -11,7 +11,6 @@ from agno.agent import Agent
 from agno.team import Team
 from agno.models.deepseek import DeepSeek
 from agno.tools.duckduckgo import DuckDuckGoTools
-from agno.tools.python import PythonTools
 from agno.tools.reasoning import ReasoningTools
 
 # Cargar variables de entorno
@@ -26,9 +25,9 @@ def main():
     # Miembro: Analista de Datos
     miembro_0 = Agent(
         name="Analista de Datos",
-        role="Analizar datasets y extraer tendencias",
+        role="Analizar información disponible y extraer tendencias",
         model=DeepSeek(id="deepseek-reasoner"),
-        tools=[PythonTools()],
+        tools=[ReasoningTools(add_instructions=True)],
     )
 
     # Miembro: Investigador
@@ -58,20 +57,23 @@ def main():
         members=[miembro_0, miembro_1, miembro_2],
         model=DeepSeek(id="deepseek-reasoner"),
         instructions=[
-        "Coordinen los hallazgos entre analista, investigador y coordinador",
-        "Entreguen un plan con acciones a corto, mediano y largo plazo"
+        "Coordinen hallazgos y propongan un plan breve",
+        "Limiten la respuesta a 3 recomendaciones concretas",
+        "Eviten cargar datasets locales; basen el análisis en conocimiento general y búsqueda web"
         ],
         markdown=True,
     )
 
-    print("\n🤖 Equipo Estrategia IA está listo\n")
+    print("\nEquipo Estrategia IA está listo\n")
     print("Miembros del equipo:")
     for display_name, display_role in member_info:
         print(f"  - {display_name}: {display_role}")
 
     print("\nEjemplo de tarea: Diseñen una estrategia de IA para una compañía fintech\n")
 
-    team.print_response("Diseñen una estrategia de IA para una compañía fintech", stream=True)
+    resultado = team.run("Diseñen una estrategia de IA para una compañía fintech")
+    print("\nResultado del equipo:\n")
+    print(resultado)
 
     print("\n")
     print("El equipo colabora automáticamente para completar tareas complejas.")

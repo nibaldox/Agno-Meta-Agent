@@ -81,4 +81,9 @@ El proyecto **Meta-Agente Generador de Agentes AI** automatiza la creación de a
 - `dics/proyect_context.md`: Contexto y normas de contribución para Cursor AI.
 - `dics/cursor_prompts.md`: Prompts sugeridos para tareas comunes.
 - `README.md`: Presentación general y guía de uso del proyecto.
+- `duckduckgo`: Herramienta primaria de búsqueda.
+- `serper`: Respaldo para búsqueda cuando DuckDuckGo no responde.
+- `reasoning`: Razonamiento avanzado.
+- `python`: Ejecución de código Python.
+- `file`: Manipulación de archivos locales.
 

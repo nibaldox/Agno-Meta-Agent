@@ -23,4 +23,5 @@
 - **Testing y cobertura:** `pytest` con cobertura integrada (`pytest.ini`, `.coveragerc`) reporta 88% global. Ramas clave: `meta_agent.py` 85%, `agent_templates.py` 90%.
 - **Documentación actualizada:** README y `dics/documentacion_general.md` documentan ejecución de scripts y resultados de cobertura.
 - **CI:** Workflow `tests.yml` configurado para correr linting y tests con cobertura en cada push/PR.
+- **Respaldo de búsqueda:** Se añadió `SerperTools` como fallback automático cuando se selecciona DuckDuckGo.
 
