@@ -245,7 +245,7 @@ python generated/agents/equipo_de_creación_de_artículos_de_ia_agent.py
 
 Tres agentes DeepSeek que colaboran (investigación, redacción y SEO).
 
-## 🧪 Testing
+## 🧪 Testing y Scripts de Ejemplo
 
 - Instala dependencias de desarrollo:
 
@@ -263,6 +263,15 @@ Tres agentes DeepSeek que colaboran (investigación, redacción y SEO).
 
   ```bash
   coverage report
+  ```
+
+- Scripts de ejemplo (ubicados en `tools/`):
+
+  ```bash
+  python tools/run_meta_agent_example.py           # Agente básico (web search)
+  python tools/run_meta_agent_topic.py             # Exploración de tema IA
+  python tools/run_meta_agent_with_memory.py       # Agente con memoria persistente
+  python tools/run_meta_agent_team.py              # Equipo colaborativo de agentes
   ```
 
 - Consulta `dics/plan_pruebas_manual.md` para escenarios manuales y `dics/plan_suite_automatizada.md` para el roadmap de testing automatizado.

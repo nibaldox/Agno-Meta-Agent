@@ -66,6 +66,7 @@ El proyecto **Meta-Agente Generador de Agentes AI** automatiza la creación de a
 - Cobertura aproximada: `meta_agent.py` 85%, `agent_templates.py` 90%.
 - Módulos de pruebas principales: `tests/test_agent_templates.py`, `tests/test_meta_agent.py`.
 - Configuración de pytest centralizada y `.coveragerc` con exclusiones para rutas aún no cubiertas.
+- Scripts de ejemplo (`tools/run_meta_agent_*.py`) generan agentes de distintas complejidades, útiles para smoke tests rápidos.
 
 ## 6. Troubleshooting y Mejores Prácticas
 

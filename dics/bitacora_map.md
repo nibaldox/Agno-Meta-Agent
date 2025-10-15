@@ -17,3 +17,10 @@
 
 > MAP = Meta-Agente Progress. Actualizar este registro con fecha, acciones y próximos pasos relevantes.
 
+## 2025-10-15
+
+- **Scripts de prueba:** Se añadieron `tools/run_meta_agent_example.py`, `run_meta_agent_topic.py`, `run_meta_agent_with_memory.py`, `run_meta_agent_team.py` y se generaron agentes de ejemplo en `generated/agents/`.
+- **Testing y cobertura:** `pytest` con cobertura integrada (`pytest.ini`, `.coveragerc`) reporta 88% global. Ramas clave: `meta_agent.py` 85%, `agent_templates.py` 90%.
+- **Documentación actualizada:** README y `dics/documentacion_general.md` documentan ejecución de scripts y resultados de cobertura.
+- **CI:** Workflow `tests.yml` configurado para correr linting y tests con cobertura en cada push/PR.
+
