@@ -1,0 +1,8 @@
+# Dependencias de desarrollo / testing
+pytest
+pytest-mock
+coverage
+black
+isort
+flake8
+

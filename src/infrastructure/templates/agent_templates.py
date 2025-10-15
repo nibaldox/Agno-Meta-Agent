@@ -5,7 +5,7 @@ Este módulo contiene las plantillas que generan código Python funcional
 para diferentes tipos de agentes usando el framework Agno.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 
 class AgentTemplate:
@@ -83,15 +83,15 @@ class AgentTemplate:
             String con el import de la herramienta
         """
         tool_map = {
-            'duckduckgo': 'from agno.tools.duckduckgo import DuckDuckGoTools',
-            'yfinance': 'from agno.tools.yfinance import YFinanceTools',
-            'reasoning': 'from agno.tools.reasoning import ReasoningTools',
-            'python': 'from agno.tools.python import PythonTools',
-            'file': 'from agno.tools.file import FileTools',
-            'web': 'from agno.tools.duckduckgo import DuckDuckGoTools',
-            'search': 'from agno.tools.duckduckgo import DuckDuckGoTools',
-            'finance': 'from agno.tools.yfinance import YFinanceTools',
-            'stock': 'from agno.tools.yfinance import YFinanceTools',
+            "duckduckgo": "from agno.tools.duckduckgo import DuckDuckGoTools",
+            "yfinance": "from agno.tools.yfinance import YFinanceTools",
+            "reasoning": "from agno.tools.reasoning import ReasoningTools",
+            "python": "from agno.tools.python import PythonTools",
+            "file": "from agno.tools.file import FileTools",
+            "web": "from agno.tools.duckduckgo import DuckDuckGoTools",
+            "search": "from agno.tools.duckduckgo import DuckDuckGoTools",
+            "finance": "from agno.tools.yfinance import YFinanceTools",
+            "stock": "from agno.tools.yfinance import YFinanceTools",
         }
 
         tool_lower = tool_name.lower()
@@ -110,21 +110,23 @@ class AgentTemplate:
         """
         tool_lower = tool_name.lower()
 
-        if 'duckduckgo' in tool_lower or 'web' in tool_lower or 'search' in tool_lower:
-            return 'DuckDuckGoTools()'
-        elif 'yfinance' in tool_lower or 'finance' in tool_lower or 'stock' in tool_lower:
-            return 'YFinanceTools(stock_price=True, company_info=True)'
-        elif 'reasoning' in tool_lower:
-            return 'ReasoningTools(add_instructions=True)'
-        elif 'python' in tool_lower:
-            return 'PythonTools()'
-        elif 'file' in tool_lower:
-            return 'FileTools()'
+        if "duckduckgo" in tool_lower or "web" in tool_lower or "search" in tool_lower:
+            return "DuckDuckGoTools()"
+        elif (
+            "yfinance" in tool_lower or "finance" in tool_lower or "stock" in tool_lower
+        ):
+            return "YFinanceTools(stock_price=True, company_info=True)"
+        elif "reasoning" in tool_lower:
+            return "ReasoningTools(add_instructions=True)"
+        elif "python" in tool_lower:
+            return "PythonTools()"
+        elif "file" in tool_lower:
+            return "FileTools()"
         else:
             return f"# Initialize {tool_name} here"
 
     @staticmethod
-    def _build_tools_code(herramientas: List[str]) -> tuple:
+    def _build_tools_code(herramientas: List[str]) -> Tuple[str, str, List[str]]:
         """
         Construye los imports y la lista de herramientas.
 
@@ -132,24 +134,37 @@ class AgentTemplate:
             herramientas: Lista de nombres de herramientas
 
         Returns:
-            Tupla con (imports, tools_list)
+            Tupla con (imports, tools_list, comentarios_placeholder)
         """
         if not herramientas:
-            return "", "[]"
+            return "", "[]", []
 
         imports = set()
         tools_init = []
+        has_valid_tools = False
+        placeholders: List[str] = []
 
         for tool in herramientas:
             import_line = AgentTemplate._get_tool_import(tool)
-            if not import_line.startswith("#"):
-                imports.add(import_line)
-                tools_init.append(AgentTemplate._generate_tools_init(tool))
+            tool_init = AgentTemplate._generate_tools_init(tool)
+
+            if import_line.startswith("#"):
+                # Mantener placeholder en lista de herramientas
+                placeholders.append(tool_init)
+                continue
+
+            imports.add(import_line)
+            tools_init.append(tool_init)
+            has_valid_tools = True
 
         imports_str = "\n".join(sorted(imports))
-        tools_str = "[" + ", ".join(tools_init) + "]"
 
-        return imports_str, tools_str
+        if has_valid_tools:
+            tools_str = "[" + ", ".join(tools_init) + "]"
+        else:
+            tools_str = "[]"
+
+        return imports_str, tools_str, placeholders
 
     @staticmethod
     def generate_basic_agent(spec: Dict) -> str:
@@ -168,23 +183,36 @@ class AgentTemplate:
         Returns:
             Código Python completo como string
         """
-        nombre = spec.get('nombre', 'Mi Agente')
-        rol = spec.get('rol', 'Asistente general')
-        modelo = spec.get('modelo', 'deepseek-chat')
-        herramientas = spec.get('herramientas', [])
-        instrucciones = spec.get('instrucciones', [])
-        ejemplo = spec.get('ejemplo_uso', '¿Cómo puedes ayudarme?')
+        nombre = spec.get("nombre", "Mi Agente")
+        rol = spec.get("rol", "Asistente general")
+        modelo = spec.get("modelo", "deepseek-chat")
+        herramientas = spec.get("herramientas", [])
+        instrucciones = spec.get("instrucciones", [])
+        ejemplo = spec.get("ejemplo_uso", "¿Cómo puedes ayudarme?")
 
         # Construir imports de modelo y herramientas
         model_import = AgentTemplate._get_model_import(modelo)
         model_init = AgentTemplate._get_model_init(modelo)
-        tools_imports, tools_init = AgentTemplate._build_tools_code(herramientas)
+        tools_imports, tools_init, tools_placeholders = AgentTemplate._build_tools_code(
+            herramientas
+        )
 
         # Construir lista de instrucciones
         if not instrucciones:
-            instrucciones = [f"Eres un {rol}", "Sé útil y conciso", "Responde de forma clara"]
+            instrucciones = [
+                f"Eres un {rol}",
+                "Sé útil y conciso",
+                "Responde de forma clara",
+            ]
 
-        instrucciones_str = ",\n        ".join([f'"{instr}"' for instr in instrucciones])
+        instrucciones_str = ",\n        ".join(
+            [f'"{instr}"' for instr in instrucciones]
+        )
+
+        tools_placeholder_comment = ""
+        if tools_placeholders:
+            placeholder_lines = "\n        ".join(tools_placeholders)
+            tools_placeholder_comment = f"\n        {placeholder_lines}"
 
         # Generar código
         code = f'''"""
@@ -212,7 +240,7 @@ def main():
         name="{nombre}",
         role="{rol}",
         model={model_init},
-        tools={tools_init},
+        tools={tools_init},{tools_placeholder_comment}
         instructions=[
         {instrucciones_str}
         ],
@@ -247,23 +275,36 @@ if __name__ == "__main__":
         Returns:
             Código Python completo como string
         """
-        nombre = spec.get('nombre', 'Mi Agente')
-        rol = spec.get('rol', 'Asistente general')
-        modelo = spec.get('modelo', 'deepseek-chat')
-        herramientas = spec.get('herramientas', [])
-        instrucciones = spec.get('instrucciones', [])
-        ejemplo = spec.get('ejemplo_uso', '¿Cómo puedes ayudarme?')
+        nombre = spec.get("nombre", "Mi Agente")
+        rol = spec.get("rol", "Asistente general")
+        modelo = spec.get("modelo", "deepseek-chat")
+        herramientas = spec.get("herramientas", [])
+        instrucciones = spec.get("instrucciones", [])
+        ejemplo = spec.get("ejemplo_uso", "¿Cómo puedes ayudarme?")
 
         # Construir imports
         model_import = AgentTemplate._get_model_import(modelo)
         model_init = AgentTemplate._get_model_init(modelo)
-        tools_imports, tools_init = AgentTemplate._build_tools_code(herramientas)
+        tools_imports, tools_init, tools_placeholders = AgentTemplate._build_tools_code(
+            herramientas
+        )
 
         # Instrucciones
         if not instrucciones:
-            instrucciones = [f"Eres un {rol}", "Recuerda conversaciones previas", "Sé útil y contextual"]
+            instrucciones = [
+                f"Eres un {rol}",
+                "Recuerda conversaciones previas",
+                "Sé útil y contextual",
+            ]
 
-        instrucciones_str = ",\n        ".join([f'"{instr}"' for instr in instrucciones])
+        instrucciones_str = ",\n        ".join(
+            [f'"{instr}"' for instr in instrucciones]
+        )
+
+        tools_placeholder_comment = ""
+        if tools_placeholders:
+            placeholder_lines = "\n        ".join(tools_placeholders)
+            tools_placeholder_comment = f"\n        {placeholder_lines}"
 
         # Generar código
         code = f'''"""
@@ -296,7 +337,7 @@ def main():
         name="{nombre}",
         role="{rol}",
         model={model_init},
-        tools={tools_init},
+        tools={tools_init},{tools_placeholder_comment}
         instructions=[
         {instrucciones_str}
         ],
@@ -326,75 +367,108 @@ if __name__ == "__main__":
 
     @staticmethod
     def generate_agent_team(spec: Dict) -> str:
-        """
-        Genera un equipo de agentes colaborativos (Nivel 4).
+        """Genera un equipo colaborativo (Nivel 4) a partir de la especificación."""
 
-        Args:
-            spec: Especificación del equipo con campos adicionales:
-                - miembros_equipo: List[Dict] con {nombre, rol, herramientas}
+        nombre = spec.get("nombre", "Mi Equipo")
+        rol = spec.get("rol", "Equipo de asistentes")
+        modelo = spec.get("modelo", "deepseek-chat")
+        miembros = spec.get("miembros_equipo", [])
+        instrucciones = spec.get("instrucciones", [])
+        ejemplo = spec.get("ejemplo_uso", "¿Qué puede hacer este equipo?")
 
-        Returns:
-            Código Python completo como string
-        """
-        nombre = spec.get('nombre', 'Mi Equipo')
-        rol = spec.get('rol', 'Equipo de asistentes')
-        modelo = spec.get('modelo', 'deepseek-chat')
-        miembros = spec.get('miembros_equipo', [])
-        instrucciones = spec.get('instrucciones', [])
-        ejemplo = spec.get('ejemplo_uso', '¿Qué puede hacer este equipo?')
-
-        # Imports del modelo
         model_import = AgentTemplate._get_model_import(modelo)
         model_init = AgentTemplate._get_model_init(modelo)
 
-        # Si no hay miembros definidos, crear equipo genérico
         if not miembros:
             miembros = [
-                {"nombre": "Researcher", "rol": "Buscar información", "herramientas": ["duckduckgo"]},
-                {"nombre": "Analyzer", "rol": "Analizar datos", "herramientas": ["reasoning"]},
-                {"nombre": "Writer", "rol": "Escribir respuestas", "herramientas": []},
+                {
+                    "nombre": "Researcher",
+                    "rol": "Buscar información",
+                    "herramientas": ["duckduckgo"],
+                },
+                {
+                    "nombre": "Analyzer",
+                    "rol": "Analizar datos",
+                    "herramientas": ["reasoning"],
+                },
+                {
+                    "nombre": "Writer",
+                    "rol": "Escribir respuestas",
+                    "herramientas": [],
+                },
             ]
 
-        # Construir código de miembros
-        all_tools_imports = set()
-        members_code = []
+        extra_imports: set[str] = set()
+        member_blocks: List[str] = []
+        member_vars: List[str] = []
+        member_info_pairs: List[Tuple[str, str]] = []
 
-        for idx, miembro in enumerate(miembros):
-            m_nombre = miembro.get('nombre', f'Member{idx+1}')
-            m_rol = miembro.get('rol', 'Miembro del equipo')
-            m_herramientas = miembro.get('herramientas', [])
+        for idx, member in enumerate(miembros):
+            member_name = member.get("nombre", f"Member{idx + 1}")
+            member_role = member.get("rol", "Miembro del equipo")
+            member_tools = member.get("herramientas", [])
 
-            tools_imports, tools_init = AgentTemplate._build_tools_code(m_herramientas)
+            imports_line, tools_init, placeholders = AgentTemplate._build_tools_code(
+                member_tools
+            )
 
-            if tools_imports:
-                for line in tools_imports.split('\n'):
-                    if line.strip():
-                        all_tools_imports.add(line)
+            if imports_line:
+                extra_imports.update(line for line in imports_line.split("\n") if line)
 
-            members_code.append(f'''
-    # Miembro: {m_nombre}
-    {m_nombre.lower().replace(' ', '_')} = Agent(
-        name="{m_nombre}",
-        role="{m_rol}",
+            placeholder_comment = ""
+            if placeholders:
+                placeholder_comment = "\n        " + "\n        ".join(placeholders)
+
+            member_var = f"miembro_{idx}"
+            member_vars.append(member_var)
+            member_blocks.append(
+                f"""
+    # Miembro: {member_name}
+    {member_var} = Agent(
+        name="{member_name}",
+        role="{member_role}",
         model={model_init},
-        tools={tools_init},
-    )''')
+        tools={tools_init},{placeholder_comment}
+    )"""
+            )
+            member_info_pairs.append((member_name, member_role))
 
-        tools_imports_str = "\n".join(sorted(all_tools_imports))
-        members_str = "\n".join(members_code)
+        if not member_blocks:
+            member_blocks.append(
+                """
+    # Miembro: Miembro Defecto
+    miembro_0 = Agent(
+        name="Miembro Defecto",
+        role="Rol indefinido",
+        model={model_init},
+        tools=[],
+    )"""
+            )
+            member_vars = ["miembro_0"]
+            member_info_pairs = [("Miembro Defecto", "Rol indefinido")]
 
-        # Instrucciones del equipo
-        if not instrucciones:
-            instrucciones = ["Colaboren efectivamente", "Dividan el trabajo según especialidades", "Combinen sus hallazgos"]
+        instructions_list = instrucciones or [
+            "Colaboren efectivamente",
+            "Dividan el trabajo según especialidades",
+            "Combinen sus hallazgos",
+        ]
+        instructions_code = ",\n        ".join(f'"{item}"' for item in instructions_list)
 
-        instrucciones_str = ",\n        ".join([f'"{instr}"' for instr in instrucciones])
+        imports_code = "\n".join(sorted(extra_imports))
+        members_code = "\n".join(member_blocks)
+        member_vars_code = ", ".join(member_vars)
+        member_info_code = ",\n        ".join(
+            [
+                f'("{name.replace("\"", "\\\"")}", "{role.replace("\"", "\\\"")}")'
+                for name, role in member_info_pairs
+            ]
+        )
 
-        # Generar código
         code = f'''"""
 {nombre} - Equipo de Agentes AI colaborativos.
 
 Rol: {rol}
-Miembros: {len(miembros)}
+Miembros: {len(member_info_pairs)}
 """
 
 import os
@@ -402,7 +476,7 @@ from dotenv import load_dotenv
 from agno.agent import Agent
 from agno.team import Team
 {model_import}
-{tools_imports_str}
+{imports_code}
 
 # Cargar variables de entorno
 load_dotenv()
@@ -412,26 +486,29 @@ def main():
     """Función principal para ejecutar el equipo de agentes."""
 
     # Crear miembros del equipo
-{members_str}
+{members_code}
 
-    # Crear el equipo
+    member_info = [
+        {member_info_code}
+    ]
+
     team = Team(
         name="{nombre}",
-        members=[{', '.join([m.get('nombre', f'member{i}').lower().replace(' ', '_') for i, m in enumerate(miembros)])}],
+        members=[{member_vars_code}],
         model={model_init},
         instructions=[
-        {instrucciones_str}
+        {instructions_code}
         ],
         markdown=True,
     )
 
-    # Ejemplo de uso
     print("\\n🤖 {nombre} está listo\\n")
     print("Miembros del equipo:")
-{chr(10).join([f'    print("  - {m.get("nombre", f"Member{i+1}")}: {m.get("rol", "Miembro del equipo")}")' for i, m in enumerate(miembros)])}
+    for display_name, display_role in member_info:
+        print(f"  - {{display_name}}: {{display_role}}")
+
     print("\\nEjemplo de tarea: {ejemplo}\\n")
 
-    # Ejecutar con el ejemplo
     team.print_response("{ejemplo}", stream=True)
 
     print("\\n")

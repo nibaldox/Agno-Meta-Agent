@@ -1,6 +1,6 @@
 # 🤖 Meta-Agente Generador de Agentes AI
 
-Un sistema modular basado en **Agno v2** que conversa contigo, diseña agentes especializados y genera código listo para ejecutar.
+Un sistema completo basado en **Agno v2** con **AgentOS** y **Lantui TUI** que conversa contigo, diseña agentes especializados y genera código listo para ejecutar.
 
 ## ✨ Características
 
@@ -9,8 +9,12 @@ Un sistema modular basado en **Agno v2** que conversa contigo, diseña agentes e
 - **Automático**: Genera código Python funcional listo para usar
 - **Flexible**: Soporta diferentes niveles de complejidad (básico, con memoria, equipos)
 - **Moderno**: Usa el framework Agno (10,000x más rápido que LangChain)
+- **AgentOS**: API RESTful completa con gestión de sesiones y persistencia
+- **Lantui TUI**: Interfaz de terminal moderna estilo Claude Code (Go + Bubble Tea)
 
 ## 🚀 Inicio Rápido
+
+### Backend (AgentOS)
 
 1. **Instalar dependencias**
 
@@ -23,15 +27,35 @@ Un sistema modular basado en **Agno v2** que conversa contigo, diseña agentes e
    Copia `.env.example` a `.env` y define las claves necesarias:
 
    ```env
-   DEEPSEEK_API_KEY=tu_api_key
-   SERPER_API_KEY=tu_api_key   # solo si usas la herramienta Serper
+   ANTHROPIC_API_KEY=tu_api_key  # Para Claude
+   DEEPSEEK_API_KEY=tu_api_key   # Para DeepSeek (opcional)
    ```
 
-3. **Ejecutar interfaz CLI**
+3. **Ejecutar AgentOS**
 
    ```bash
-   python -m src.presentation.cli.main
+   python agentos.py
    ```
+
+   El servidor estará disponible en `http://localhost:7777`
+
+### Frontend (Lantui TUI)
+
+1. **Requisitos**: Go 1.21+
+
+2. **Ejecutar Lantui**
+
+   ```bash
+   cd lantui
+   go mod download
+   go run cmd/lantui/main.go
+   ```
+
+### CLI Clásica (sin AgentOS)
+
+```bash
+python -m src.presentation.cli.main
+```
 
 ## 📖 Cómo Usar
 
@@ -98,11 +122,56 @@ Herramientas: duckduckgo
 | `python` | Ejecutar código | Cálculos, procesamiento |
 | `file` | Manipular archivos | Leer, escribir archivos |
 
-## 📁 Arquitectura Limpia
+## 🏗️ Arquitectura del Sistema
 
 ```
-src/
-├── application/
+┌─────────────────────────────────────────────────────────┐
+│                   Lantui (Go TUI)                       │
+│         Terminal UI moderna (Bubble Tea)                │
+│    Pantallas: Welcome│Conversation│Plan│Generation      │
+└─────────────────────┬───────────────────────────────────┘
+                      │ HTTP/REST (puerto 7777)
+┌─────────────────────▼───────────────────────────────────┐
+│                  AgentOS (FastAPI)                      │
+│                                                         │
+│  ┌────────────────────────────────────────────┐        │
+│  │   Analyzer Agent  │  Planner Agent         │        │
+│  │   (Preguntas)     │  (Crea planes)         │        │
+│  └────────────────────────────────────────────┘        │
+│                                                         │
+│  Storage: SQLite (sesiones, memoria)                   │
+│  API: /agents/{id}/chat, /api/meta-agent/generate     │
+└─────────────────────────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│              Generated Agents (Python)                  │
+│           Agentes AI listos para ejecutar               │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Componentes
+
+- **Lantui (Go)**: Frontend TUI moderno con Bubble Tea
+- **AgentOS (Python)**: Backend con API RESTful completa
+- **Analyzer Agent**: Analiza solicitudes y hace preguntas
+- **Planner Agent**: Crea planes estructurados
+- **Generator**: Genera código Python de agentes
+- **SQLite Storage**: Persistencia de sesiones y memoria
+
+## 📁 Arquitectura del Código
+
+```
+.
+├── agentos.py                 # ⭐ AgentOS - Servidor principal
+├── lantui/                    # 🎨 Frontend TUI (Go)
+│   ├── cmd/lantui/            # Entry point
+│   ├── internal/
+│   │   ├── ui/                # Componentes Bubble Tea
+│   │   ├── client/            # Cliente AgentOS
+│   │   └── models/            # Estructuras de datos
+│   └── README.md
+├── src/
+│   ├── application/
 │   ├── __init__.py
 │   └── services/
 │       └── meta_agent.py        # Orquestador del flujo conversacional (Analyzer + Planner)
@@ -175,6 +244,69 @@ python generated/agents/equipo_de_creación_de_artículos_de_ia_agent.py
 ```
 
 Tres agentes DeepSeek que colaboran (investigación, redacción y SEO).
+
+## 🧪 Testing
+
+- Instala dependencias de desarrollo:
+
+  ```bash
+  pip install -r requirements-dev.txt
+  ```
+
+- Ejecuta la suite de tests con cobertura:
+
+  ```bash
+  pytest
+  ```
+
+- Revisa cobertura detallada:
+
+  ```bash
+  coverage report
+  ```
+
+- Consulta `dics/plan_pruebas_manual.md` para escenarios manuales y `dics/plan_suite_automatizada.md` para el roadmap de testing automatizado.
+
+### Integración Continua
+
+- El workflow `.github/workflows/tests.yml` ejecuta la suite automáticamente en cada push/PR hacia `main` o `master`:
+
+  ```yaml
+  - name: Run tests with coverage
+    run: |
+      pytest
+  ```
+
+## 📚 Documentación
+
+### Backend (Python + AgentOS)
+- **[agentos.py](./agentos.py)** - Servidor AgentOS principal
+- **[src/application/services/meta_agent.py](./src/application/services/meta_agent.py)** - Lógica del Meta-Agente
+- **[src/infrastructure/api/meta_routes.py](./src/infrastructure/api/meta_routes.py)** - Rutas custom de API
+- **[src/infrastructure/templates/agent_templates.py](./src/infrastructure/templates/agent_templates.py)** - Generación de código
+
+### Frontend (Go + Lantui)
+- **[doc-frontend/](./doc-frontend/)** - Documentación completa del TUI
+  - [resumen-agentos.md](./doc-frontend/resumen-agentos.md) - ⭐ **EMPIEZA AQUÍ**
+  - [setup-inicial.md](./doc-frontend/setup-inicial.md) - Guía de instalación Go
+  - [api-contracts-agentos.md](./doc-frontend/api-contracts-agentos.md) - Contratos de API
+  - [guia-estilo-go.md](./doc-frontend/guia-estilo-go.md) - Convenciones Go
+
+### API Endpoints
+
+**AgentOS Nativos:**
+- `GET /health` - Health check
+- `GET /config` - Configuración del OS
+- `GET /docs` - Documentación Swagger
+- `POST /agents/{agent_id}/chat` - Chat con agentes
+- `GET /sessions` - Listar sesiones
+
+**Custom Meta-Agent:**
+- `POST /api/meta-agent/generate` - Generar código
+- `POST /api/meta-agent/generate-stream` - Con streaming
+- `GET /api/meta-agent/generated` - Listar agentes generados
+
+Ver detalles en [http://localhost:7777/docs](http://localhost:7777/docs) cuando AgentOS esté corriendo.
 
 ## 🎯 Casos de Uso
 
